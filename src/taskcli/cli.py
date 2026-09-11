@@ -1,6 +1,6 @@
 import argparse
 import json
-from datetime import datetime, date, time
+from datetime import datetime
 from pathlib import Path
 
 TASKS_FILE = Path.home() / "taskcli.json"
@@ -84,7 +84,7 @@ def list_tasks(args):
         updated_at = datetime.fromisoformat(task["updatedAt"])
         print("--------------------")
         print(f"{task['id']}: {task['name']}")
-        print(f"Decsription: {task['description']}")
+        print(f"Description: {task['description']}")
         print(f"Status: {task['status']}")
         print(f"Last change: {updated_at.strftime("%d %B %Y, %H:%M")}")
 
@@ -160,8 +160,8 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     add_task_parser.add_argument("name", type=str, help="task name (required)")
-    add_task_parser.add_argument("-d", "--description", type=str, 
-                                help="detailed description of the task (optional)")
+    add_task_parser.add_argument("-d", "--description", type=str,
+                                 help="detailed description of the task (optional)")
     add_task_parser.set_defaults(func=add_task)
 
     # Update task command
@@ -173,10 +173,10 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     update_task_parser.add_argument("id", type=int, help="task ID to update")
-    update_task_parser.add_argument("-n", "--name", type=str, 
-                                   help="new name for the task")
-    update_task_parser.add_argument("-d", "--description", type=str, 
-                                   help="new description for the task")
+    update_task_parser.add_argument("-n", "--name", type=str,
+                                    help="new name for the task")
+    update_task_parser.add_argument("-d", "--description", type=str,
+                                    help="new description for the task")
     update_task_parser.set_defaults(func=update_task)
 
     # Delete task command
@@ -202,10 +202,10 @@ def main():
                "  task-cli list -f done",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    list_tasks_parser.add_argument("-f", "--filter", type=str, 
-                                  help="filter tasks by status",
-                                  choices=["done", "in-progress", "todo"],
-                                  metavar="STATUS")
+    list_tasks_parser.add_argument("-f", "--filter", type=str,
+                                   help="filter tasks by status",
+                                   choices=["done", "in-progress", "todo"],
+                                   metavar="STATUS")
     list_tasks_parser.set_defaults(func=list_tasks)
 
     # Mark done command
