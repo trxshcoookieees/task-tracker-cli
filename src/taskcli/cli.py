@@ -41,23 +41,19 @@ def update_task(args):
     task_id = args.id
 
     tasks = load_tasks()
-    index = next(
-        (i for i, task in enumerate(tasks) if task["id"] == args.id),
-        None
-    )
+    task = find_task(tasks, task_id)
 
-    if not index is None:
-        if args.name:
-            tasks[index]["name"] = args.name
-        if args.description:
-            tasks[index]["description"] = args.description
-        tasks[index]["updatedAt"] = datetime.now().isoformat()
-        save_tasks(tasks)
-        print(f"Task updated successfully (ID: {task_id})")
+    if task in None:
+        print(f"Task not found (ID: {task_id})")
         return
 
-    print(f"Task not found (ID: {task_id})")
-    return
+    if args.name:
+        task["name"] = args.name
+    if args.description:
+        task["description"] = args.description
+    task["updatedAt"] = datetime.now().isoformat()
+    save_tasks(tasks)
+    print(f"Task updated successfully (ID: {task_id})")
 
 
 def delete_task(args):
@@ -95,40 +91,42 @@ def mark_done(args):
     task_id = args.id
 
     tasks = load_tasks()
-    index = next(
-        (i for i, task in enumerate(tasks) if task["id"] == args.id),
-        None
-    )
+    task = find_task(tasks, task_id)
 
-    if not index is None:
-        tasks[index]["status"] = "done"
-        tasks[index]["updatedAt"] = datetime.now().isoformat()
-        save_tasks(tasks)
-        print(f"Task updated successfully (ID: {task_id})")
+    if task is None:
+        print(f"Task not found (ID: {task_id})")
         return
 
-    print(f"Task not found (ID: {task_id})")
-    return
+    update_status(task, "done")
+    save_tasks(tasks)
+    print(f"Task updated successfully (ID: {task_id})")
 
 
 def mark_in_progress(args):
     task_id = args.id
 
     tasks = load_tasks()
-    index = next(
-        (i for i, task in enumerate(tasks) if task["id"] == args.id),
-        None
-    )
+    task = find_task(tasks, task_id)
 
-    if not index is None:
-        tasks[index]["status"] = "in-progress"
-        tasks[index]["updatedAt"] = datetime.now().isoformat()
-        save_tasks(tasks)
-        print(f"Task updated successfully (ID: {task_id})")
+    if task is None:
+        print(f"Task not found (ID: {task_id})")
         return
 
-    print(f"Task not found (ID: {task_id})")
-    return
+    update_status(task, "in-progress")
+    save_tasks(tasks)
+    print(f"Task updated successfully (ID: {task_id})")
+
+
+def update_status(task, status):
+    task["status"] = status
+    task["updatedAt"] = datetime.now().isoformat()
+
+
+def find_task(tasks, task_id):
+    return next(
+        (task for task in tasks if task["id"] == task_id),
+        None
+    )
 
 
 def main():
