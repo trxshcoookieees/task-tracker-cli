@@ -5,6 +5,7 @@ from pathlib import Path
 
 TASKS_FILE = Path.home() / "taskcli.json"
 
+
 def load_tasks():
     if not TASKS_FILE.exists():
         return []
@@ -47,7 +48,7 @@ def update_task(args):
     tasks = load_tasks()
     task = find_task(tasks, task_id)
 
-    if task in None:
+    if task is None:
         print(f"Task not found (ID: {task_id})")
         return
 
