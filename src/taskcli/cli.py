@@ -4,11 +4,10 @@ from datetime import datetime
 from pathlib import Path
 
 TASKS_FILE = Path.home() / "taskcli.json"
-if not TASKS_FILE.exists():
-    TASKS_FILE.write_text("[]")
-
 
 def load_tasks():
+    if not TASKS_FILE.exists():
+        return []
     with TASKS_FILE.open("r") as file:
         return json.load(file)
 
