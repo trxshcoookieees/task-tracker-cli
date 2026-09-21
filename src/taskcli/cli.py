@@ -59,8 +59,13 @@ def update_task(args):
 def delete_task(args):
     task_id = args.id
     tasks = load_tasks()
+    task = find_task(tasks, task_id)
 
-    tasks = [task for task in tasks if task["id"] != task_id]
+    if task is None:
+        print(f"Task not found (ID: {task_id})")
+        return
+
+    tasks.remove(task)
     save_tasks(tasks)
     print(f"Task deleted successfully (ID: {task_id})")
 
@@ -117,7 +122,7 @@ def mark_in_progress(args):
     print(f"Task updated successfully (ID: {task_id})")
 
 
-def update_status(task, status):
+def update_status(task: dict, status):
     task["status"] = status
     task["updatedAt"] = datetime.now().isoformat()
 
