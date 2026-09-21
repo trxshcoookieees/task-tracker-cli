@@ -52,7 +52,7 @@ def update_task(args):
         print(f"Task not found (ID: {task_id})")
         return
 
-    if args.name:
+    if args.name is not None:
         task["name"] = args.name
     if args.description is not None:
         task["description"] = args.description
