@@ -22,13 +22,14 @@ def add_task(args):
     description = args.description if args.description else ""
     tasks = load_tasks()
     new_id = max((task["id"] for task in tasks), default=0) + 1
+    date_now = datetime.now().isoformat()
     new_task = {
         "id": new_id,
         "name": args.name,
         "description": description,
         "status": "todo",
-        "createdAt": datetime.now().isoformat(),
-        "updatedAt": datetime.now().isoformat(),
+        "createdAt": date_now,
+        "updatedAt": date_now,
     }
     tasks.append(new_task)
 
