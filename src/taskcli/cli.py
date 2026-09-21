@@ -49,7 +49,7 @@ def update_task(args):
 
     if args.name:
         task["name"] = args.name
-    if args.description:
+    if args.description is not None:
         task["description"] = args.description
     task["updatedAt"] = datetime.now().isoformat()
     save_tasks(tasks)
