@@ -75,7 +75,7 @@ def delete_task(args):
 
 
 def list_tasks(args):
-    status = args.filter.lower() if args.filter else None
+    status = args.filter
     tasks = load_tasks()
     print("-------TASKS--------")
     if status:
