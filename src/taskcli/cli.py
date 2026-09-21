@@ -21,7 +21,7 @@ def save_tasks(tasks):
 def add_task(args):
     description = args.description if args.description else ""
     tasks = load_tasks()
-    new_id = len(tasks) + 1
+    new_id = max((task["id"] for task in tasks), default=0) + 1
     new_task = {
         "id": new_id,
         "name": args.name,
