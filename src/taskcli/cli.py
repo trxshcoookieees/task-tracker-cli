@@ -8,8 +8,12 @@ TASKS_FILE = Path.home() / "taskcli.json"
 def load_tasks():
     if not TASKS_FILE.exists():
         return []
-    with TASKS_FILE.open("r") as file:
-        return json.load(file)
+    try:
+        with TASKS_FILE.open("r") as file:
+            return json.load(file)
+    except json.JSONDecodeError:
+        print("Error: task file contains invalid JSON")
+        return []
 
 
 def save_tasks(tasks):
