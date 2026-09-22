@@ -1,148 +1,13 @@
 import argparse
-import json
-from dataclasses import dataclass, asdict
-from enum import Enum
-from datetime import datetime
-from pathlib import Path
 
-
-class TaskStatus(str, Enum):
-    TODO = "todo"
-    IN_PROGRESS = "in-progress"
-    DONE = "done"
-
-
-@dataclass
-class Task:
-    id: int
-    name: str
-    created_at: str
-    updated_at: str
-    description: str | None = None
-    status: TaskStatus = TaskStatus.TODO
-
-
-TASKS_FILE = Path.home() / "taskcli.json"
-
-
-def load_tasks() -> list[Task]:
-    if not TASKS_FILE.exists():
-        return []
-    try:
-        with TASKS_FILE.open("r") as file:
-            data = json.load(file)
-            return [Task(**task) for task in data]
-    except json.JSONDecodeError:
-        print("Error: task file contains invalid JSON")
-        return []
-
-
-def save_tasks(tasks: list[Task]) -> None:
-    with TASKS_FILE.open("w") as file:
-        json.dump(
-            [asdict(task) for task in tasks],
-            file,
-            indent=4
-        )
-
-
-def add_task(args) -> None:
-    description = args.description
-    tasks = load_tasks()
-    new_id = max((task.id for task in tasks), default=0) + 1
-    date_now = datetime.now().isoformat()
-    new_task = Task(
-        id=new_id,
-        name=args.name,
-        description=description,
-        created_at=date_now,
-        updated_at=date_now
-    )
-    tasks.append(new_task)
-    save_tasks(tasks)
-
-    print(f"Task added successfully (ID: {new_id})")
-
-
-def update_task(args) -> None:
-    task_id = args.id
-
-    tasks = load_tasks()
-    task = find_task(tasks, task_id)
-
-    if task is None:
-        print(f"Task not found (ID: {task_id})")
-        return
-
-    if args.name is not None:
-        task.name = args.name
-    if args.description is not None:
-        task.description = args.description
-    task.updated_at = datetime.now().isoformat()
-    save_tasks(tasks)
-    print(f"Task updated successfully (ID: {task_id})")
-
-
-def delete_task(args) -> None:
-    task_id = args.id
-    tasks = load_tasks()
-    task = find_task(tasks, task_id)
-
-    if task is None:
-        print(f"Task not found (ID: {task_id})")
-        return
-
-    tasks.remove(task)
-    save_tasks(tasks)
-    print(f"Task deleted successfully (ID: {task_id})")
-
-
-def list_tasks(args) -> None:
-    status = args.filter
-    tasks = load_tasks()
-    print("-------TASKS--------")
-    if status:
-        print(f"Filter: {status}\n")
-        tasks = [
-            task for task in tasks
-            if task.status == status
-        ]
-    for task in tasks:
-        updated_at = datetime.fromisoformat(task.updated_at)
-        print("--------------------")
-        print(f"{task.id}: {task.name}")
-        print(f"Description: {task.description}")
-        print(f"Status: {task.status}")
-        print(f"Last change: {updated_at.strftime("%d %B %Y, %H:%M")}")
-
-    print("--------------------")
-
-
-def mark_status(args) -> None:
-    task_id = args.id
-
-    tasks = load_tasks()
-    task = find_task(tasks, task_id)
-
-    if task is None:
-        print(f"Task not found (ID: {task_id})")
-        return
-
-    update_status(task, args.status)
-    save_tasks(tasks)
-    print(f"Task updated successfully (ID: {task_id})")
-
-
-def update_status(task: Task, status: TaskStatus) -> None:
-    task.status = status
-    task.updated_at = datetime.now().isoformat()
-
-
-def find_task(tasks: list[Task], task_id: int) -> Task | None:
-    return next(
-        (task for task in tasks if task.id == task_id),
-        None
-    )
+from taskcli.models import TaskStatus
+from taskcli.tasks import (
+    add_task,
+    update_task,
+    list_tasks,
+    delete_task,
+    mark_status
+)
 
 
 def main():
@@ -176,7 +41,9 @@ def main():
     add_task_parser.add_argument("name", type=str, help="task name (required)")
     add_task_parser.add_argument("-d", "--description", type=str,
                                  help="detailed description of the task (optional)")
-    add_task_parser.set_defaults(func=add_task)
+    add_task_parser.set_defaults(
+        func=lambda params: add_task(params.name, params.description)
+    )
 
     # Update task command
     update_task_parser = subparsers.add_parser(
@@ -191,7 +58,9 @@ def main():
                                     help="new name for the task")
     update_task_parser.add_argument("-d", "--description", type=str,
                                     help="new description for the task")
-    update_task_parser.set_defaults(func=update_task)
+    update_task_parser.set_defaults(
+        func=lambda params: update_task(params.id, params.name, params.description)
+    )
 
     # Delete task command
     delete_task_parser = subparsers.add_parser(
@@ -202,7 +71,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     delete_task_parser.add_argument("id", type=int, help="task ID to delete")
-    delete_task_parser.set_defaults(func=delete_task)
+    delete_task_parser.set_defaults(
+        func=lambda params: delete_task(params.id)
+    )
 
     # List tasks command
     list_tasks_parser = subparsers.add_parser(
@@ -216,11 +87,13 @@ def main():
                "  task-cli list -f done",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    list_tasks_parser.add_argument("-f", "--filter", type=str,
+    list_tasks_parser.add_argument("-f", "--filter", type=TaskStatus,
+                                   choices=list(TaskStatus),
                                    help="filter tasks by status",
-                                   choices=["done", "in-progress", "todo"],
                                    metavar="STATUS")
-    list_tasks_parser.set_defaults(func=list_tasks)
+    list_tasks_parser.set_defaults(
+        func=lambda params: list_tasks(params.filter)
+    )
 
     # Mark done command
     mark_done_parser = subparsers.add_parser(
@@ -232,8 +105,7 @@ def main():
     )
     mark_done_parser.add_argument("id", type=int, help="task ID to mark as done")
     mark_done_parser.set_defaults(
-        func=mark_status,
-        status=TaskStatus.DONE
+        func=lambda params: mark_status(params.id, TaskStatus.DONE),
     )
 
     # Mark in-progress command
@@ -246,8 +118,7 @@ def main():
     )
     mark_in_progress_parser.add_argument("id", type=int, help="task ID to mark as in progress")
     mark_in_progress_parser.set_defaults(
-        func=mark_status,
-        status=TaskStatus.IN_PROGRESS
+        func=lambda params: mark_status(params.id, TaskStatus.IN_PROGRESS)
     )
 
     args = parser.parse_args()
