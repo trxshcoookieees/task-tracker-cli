@@ -1,7 +1,7 @@
 import json
 from dataclasses import asdict
 from pathlib import Path
-from taskcli.models import Task
+from taskcli.models import Task, TaskStatus
 
 TASKS_FILE = Path.home() / "taskcli.json"
 
@@ -12,6 +12,9 @@ def load_tasks() -> list[Task]:
     try:
         with TASKS_FILE.open("r") as file:
             data = json.load(file)
+            for task in data:
+                task["status"] = TaskStatus(task["status"])
+
             return [Task(**task) for task in data]
     except json.JSONDecodeError:
         print("Error: task file contains invalid JSON")
