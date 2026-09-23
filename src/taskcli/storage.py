@@ -12,10 +12,28 @@ def load_tasks() -> list[Task]:
     try:
         with TASKS_FILE.open("r") as file:
             data = json.load(file)
-            for task in data:
-                task["status"] = TaskStatus(task["status"])
 
-            return [Task(**task) for task in data]
+            if not isinstance(data, list):
+                print(f"Error: task file has invalid structure")
+                return []
+
+            valid_tasks = []
+
+            for i, task in enumerate(data):
+                if not isinstance(task, dict):
+                    print(f"Warning: Invalid task at index {i}, skipped")
+                    continue
+
+                try:
+                    task["status"] = TaskStatus(task["status"])
+                    task = Task(**task)
+                except (KeyError, TypeError, ValueError):
+                    print(f"Warning: Invalid task at index {i}, skipped")
+                    continue
+
+                valid_tasks.append(task)
+
+            return valid_tasks
     except json.JSONDecodeError:
         print("Error: task file contains invalid JSON")
         return []
