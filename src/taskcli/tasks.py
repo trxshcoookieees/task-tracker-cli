@@ -64,7 +64,7 @@ def list_tasks(status: TaskStatus | None) -> None:
         print("--------------------")
         print(f"{task.id}: {task.name}")
         print(f"Description: {task.description}")
-        print(f"Status: {task.status}")
+        print(f"Status: {task.status.value}")
         print(f"Last change: {updated_at.strftime("%d %B %Y, %H:%M")}")
 
     print("--------------------")
