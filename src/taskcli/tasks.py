@@ -21,6 +21,9 @@ def add_task(name: str, description: str | None) -> None:
 
 
 def update_task(task_id: int, name: str | None, description: str | None) -> None:
+    if not name and not description:
+        print(f"No changes made for this task (ID: {task_id})")
+        return
     tasks = load_tasks()
     task = find_task(tasks, task_id)
 
